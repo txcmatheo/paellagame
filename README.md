@@ -14,7 +14,7 @@ GitHub Pages no tiene servidor ni base de datos. Los cambios hechos desde el pan
 - Filtros por todos, vivos y muertos.
 - Busqueda por nombre, numero, usuario de Minecraft o usuario de Kick.
 - Avatares estilo Minecraft.
-- Contador de vivos, muertos, creadores y streams en Kick.
+- Contador de vivos, muertos, creadores y streams.
 - Diseno responsive para escritorio, tablet y celular.
 
 
