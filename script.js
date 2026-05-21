@@ -63,8 +63,9 @@ const creators = [
   { id: 62, name: "nicolenatacha", minecraftName: "nicolenatacha", streamName: "nicolenatacha", profileUrl: "https://es.namemc.com/profile/nicolenatacha.1" },
   { id: 63, name: "pattysousou", minecraftName: "pdsousa16", streamName: "pattysousou", profileUrl: "https://es.namemc.com/profile/pdsousa16.1" },
   { id: 64, name: "myreiden17", minecraftName: "myreiden17", streamName: "myreiden17", profileUrl: "https://es.namemc.com/profile/myreiden17.1" },
-  { id: 65, name: "miguefly", minecraftName: "miguefly", streamName: "miguefly", profileUrl: "https://es.namemc.com/profile/miguefly.1" }
-
+  { id: 65, name: "miguefly", minecraftName: "miguefly", streamName: "miguefly", profileUrl: "https://es.namemc.com/profile/miguefly.1" },
+  { id: 66, name: "marigosh77", minecraftName: "marigosh77", streamName: "marigosh77", profileUrl: "https://es.namemc.com/profile/marigosh77.1" },
+  { id: 67, name: "copitosan", minecraftName: "copitosan", streamName: "copitosan", profileUrl: "https://es.namemc.com/profile/Copitocosplay.1" }
 ];
 
 const adminTokenKey = "squid-admin-authenticated";
