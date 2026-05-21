@@ -1,4 +1,4 @@
-# El Bunker Tracker
+# Paella Games Tracker
 
 Pagina estatica para GitHub Pages que muestra el estado de supervivencia de los participantes de **PAELLA GAMES**.
 
