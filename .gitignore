@@ -1,0 +1,21 @@
+# Local/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.sixth/
+.vercel/
+
+# Dependencies and logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*
+
+# Runtime state
+data/
