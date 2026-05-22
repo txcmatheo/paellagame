@@ -31,7 +31,7 @@ const creators = [
   { id: 30, name: "papikayl", minecraftName: "papikayl", streamName: "papikayl", profileUrl: "https://es.namemc.com/profile/papikayl.1" },
   { id: 31, name: "keideota_", minecraftName: "keideota", streamName: "keideota_", profileUrl: "https://es.namemc.com/profile/keideota.1" },
   { id: 32, name: "milzyvt", minecraftName: "milzyvt", streamName: "milzyvt", profileUrl: "https://es.namemc.com/profile/milzyvt.1" },
-  { id: 33, name: "ttvmichii", minecraftName: "ttvmichii", streamPlatform: "kick", streamName: "ttvmichii", profileUrl: "https://es.namemc.com/profile/TTVmichii.1" },
+  { id: 33, name: "ttvmichii", minecraftName: "TTVmichii1", streamPlatform: "kick", streamName: "ttvmichii", profileUrl: "https://es.namemc.com/profile/TTVmichii1.1" },
   { id: 34, name: "lilwill7", minecraftName: "LilWill7_", streamName: "lilwill7_", profileUrl: "https://es.namemc.com/profile/LilWill7_.1" },
   { id: 35, name: "f1r3m4n007", minecraftName: "f1r3m4n007", streamName: "f1r3m4n007", profileUrl: "https://es.namemc.com/profile/f1r3m4n007.1" },
   { id: 36, name: "sregg0", minecraftName: "sregg0", streamName: "sregg0", profileUrl: "https://es.namemc.com/profile/sregg0.1" },
@@ -61,7 +61,9 @@ const creators = [
   { id: 60, name: "nathalia_gr1", minecraftName: "nathalia_gr1", streamName: "nattsie", profileUrl: "https://es.namemc.com/profile/nathalia_gr1.1" },
   { id: 61, name: "TitoElBambinoXD ", minecraftName: "TitoElBambinoXD", streamName: "TitoElBambinoXD ", profileUrl: "https://es.namemc.com/profile/TitoElBambinoXD.1" },
   { id: 62, name: "Ale555YT", minecraftName: "Ale555YT", streamName: "Ale555YT", profileUrl: "https://es.namemc.com/profile/Ale555YT.1" },
-  { id: 63, name: "pattysousou", minecraftName: "pdsousa16", streamName: "pattysousou", profileUrl: "https://es.namemc.com/profile/pdsousa16.1" }
+  { id: 63, name: "pattysousou", minecraftName: "pdsousa16", streamName: "pattysousou", profileUrl: "https://es.namemc.com/profile/pdsousa16.1" },
+  { id: 64, name: "dawnhasashi", minecraftName: "the1dawn", streamName: "dawnhasashi", profileUrl: "https://es.namemc.com/profile/the1dawn.1" },
+  { id: 65, name: "tifani10p", minecraftName: "Tifan1p", streamName: "tifani10p", profileUrl: "https://es.namemc.com/profile/Tifan1p.1" },
 ];
 
 const adminTokenKey = "squid-admin-authenticated";
@@ -75,6 +77,9 @@ const isAdminPage = pathName.endsWith("/admin")
 let isAdminAuthenticated = localStorage.getItem(adminTokenKey) === "1";
 const staticDeadPlayers = Array.isArray(window.PAELLA_STATIC_DEAD_PLAYERS)
   ? window.PAELLA_STATIC_DEAD_PLAYERS
+  : [];
+const forcedLivePlayers = Array.isArray(window.PAELLA_FORCE_LIVE_PLAYERS)
+  ? window.PAELLA_FORCE_LIVE_PLAYERS
   : [];
 const players = creators.map((creator) => ({
   ...creator,
@@ -144,6 +149,23 @@ function isStaticDeadPlayer(creator) {
 
     const normalizedDeadPlayer = normalizeStaticPlayerKey(deadPlayer);
     return keys.some((key) => normalizeStaticPlayerKey(key) === normalizedDeadPlayer);
+  });
+}
+
+function matchesStaticPlayer(player, values) {
+  const keys = [
+    player.id,
+    player.name,
+    player.minecraftName,
+    player.twitchName,
+    player.streamName
+  ].filter((value) => value !== undefined && value !== null);
+
+  return values.some((value) => {
+    if (typeof value === "number") return player.id === value;
+
+    const normalizedValue = normalizeStaticPlayerKey(value);
+    return keys.some((key) => normalizeStaticPlayerKey(key) === normalizedValue);
   });
 }
 
@@ -442,15 +464,88 @@ function updateStats() {
   updateLiveStats();
 }
 
+async function fetchText(url, options = {}) {
+  const { timeoutMs = 12000, ...fetchOptions } = options;
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  const response = await fetch(url, {
+    cache: "no-store",
+    ...fetchOptions,
+    signal: controller.signal,
+    headers: {
+      "Accept": "text/plain, application/json;q=0.9, */*;q=0.8",
+      ...(fetchOptions.headers || {})
+    }
+  });
+  window.clearTimeout(timeoutId);
+
+  if (!response.ok) return null;
+  return response.text();
+}
+
+function parseJsonPayload(text) {
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    const objectStart = text.indexOf("{");
+    const arrayStart = text.indexOf("[");
+    const starts = [objectStart, arrayStart].filter((index) => index >= 0);
+    if (!starts.length) return null;
+
+    const start = Math.min(...starts);
+    const end = text[start] === "{" ? text.lastIndexOf("}") : text.lastIndexOf("]");
+    if (end <= start) return null;
+
+    try {
+      return JSON.parse(text.slice(start, end + 1));
+    } catch (nestedError) {
+      return null;
+    }
+  }
+}
+
+async function fetchJson(url, options = {}) {
+  try {
+    const text = await fetchText(url, options);
+    if (!text) return null;
+
+    return parseJsonPayload(text);
+  } catch (error) {
+    return null;
+  }
+}
+
+async function fetchJsonWithCorsFallback(url) {
+  const direct = await fetchJson(url);
+  if (direct) return direct;
+
+  const jina = await fetchJson(`https://r.jina.ai/http://${url}`, { timeoutMs: 15000 });
+  if (jina) return jina;
+
+  return fetchJson(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, { timeoutMs: 8000 });
+}
+
+function parseKickPayload(payload) {
+  const livestream = payload?.livestream || payload?.live_stream || null;
+  const isLive = Boolean(payload?.is_live || livestream?.is_live || livestream?.session_title || livestream?.slug);
+
+  return {
+    isLive,
+    title: livestream?.session_title || payload?.session_title || payload?.recent_categories?.[0]?.name || "",
+    viewerCount: Number(livestream?.viewer_count || payload?.viewer_count || 0) || 0
+  };
+}
+
 async function fetchKickStatus(player) {
   const channel = encodeURIComponent(player.streamName);
 
   try {
     const response = await fetch(`/api/kick-live?channel=${channel}`);
-    if (!response.ok) return null;
+    if (!response.ok) throw new Error("Local Kick API unavailable");
 
     const payload = await response.json();
-    if (!payload.ok) return null;
+    if (!payload.ok) throw new Error("Local Kick API returned an invalid payload");
 
     return {
       isLive: Boolean(payload.is_live),
@@ -458,6 +553,16 @@ async function fetchKickStatus(player) {
       viewerCount: payload.viewer_count || 0
     };
   } catch (error) {
+    const endpoints = [
+      `https://kick.com/api/v2/channels/${channel}`,
+      `https://kick.com/api/v1/channels/${channel}`
+    ];
+
+    for (const endpoint of endpoints) {
+      const payload = await fetchJsonWithCorsFallback(endpoint);
+      if (payload) return parseKickPayload(payload);
+    }
+
     return null;
   }
 }
@@ -466,15 +571,22 @@ async function fetchTwitchStatus(player) {
   const channel = encodeURIComponent(player.streamName);
 
   try {
-    const [uptimeResponse, viewersResponse] = await Promise.all([
-      fetch(`https://decapi.me/twitch/uptime/${channel}`),
-      fetch(`https://decapi.me/twitch/viewercount/${channel}`)
+    const cacheBust = `t=${Date.now()}`;
+    const [uptime, viewersText] = await Promise.all([
+      fetchText(`https://decapi.me/twitch/uptime/${channel}?${cacheBust}`),
+      fetchText(`https://decapi.me/twitch/viewercount/${channel}?${cacheBust}`)
     ]);
 
-    const uptime = (await uptimeResponse.text()).trim();
-    const viewersText = (await viewersResponse.text()).trim();
+    if (!uptime) {
+      const graphqlStatus = await fetchTwitchGraphqlStatus(player);
+      return graphqlStatus || fetchTwitchIvrStatus(player);
+    }
+
     const isLive = uptime.length > 0 && !/not live|no está en vivo|offline/i.test(uptime);
-    const viewerCount = Number.parseInt(viewersText.replace(/[^\d]/g, ""), 10) || 0;
+    if (!uptime) return null;
+
+    const cleanUptime = uptime.trim();
+    const viewerCount = Number.parseInt((viewersText || "").replace(/[^\d]/g, ""), 10) || 0;
 
     return {
       isLive,
@@ -482,11 +594,58 @@ async function fetchTwitchStatus(player) {
       viewerCount: isLive ? viewerCount : 0
     };
   } catch (error) {
-    return null;
+    const graphqlStatus = await fetchTwitchGraphqlStatus(player);
+    return graphqlStatus || fetchTwitchIvrStatus(player);
   }
 }
 
+async function fetchTwitchGraphqlStatus(player) {
+  const payload = await fetchJson("https://gql.twitch.tv/gql", {
+    method: "POST",
+    timeoutMs: 10000,
+    headers: {
+      "Client-ID": "kimne78kx3ncx6brgo4mv6wki5h1ko",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify([{
+      operationName: "StreamMetadata",
+      query: "query StreamMetadata($channelLogin: String!) { user(login: $channelLogin) { lastBroadcast { title } stream { id title viewersCount createdAt } } }",
+      variables: { channelLogin: player.streamName }
+    }])
+  });
+
+  const user = payload?.[0]?.data?.user;
+  if (!user) return null;
+
+  const stream = user.stream || null;
+
+  return {
+    isLive: Boolean(stream),
+    title: stream?.title || user.lastBroadcast?.title || "",
+    viewerCount: Number(stream?.viewersCount || 0) || 0
+  };
+}
+
+async function fetchTwitchIvrStatus(player) {
+  const channel = encodeURIComponent(player.streamName);
+  const payload = await fetchJson(`https://api.ivr.fi/v2/twitch/user?login=${channel}`);
+  const user = Array.isArray(payload) ? payload[0] : payload;
+  if (!user) return null;
+
+  const stream = user.stream || null;
+
+  return {
+    isLive: Boolean(stream),
+    title: stream?.title || user.lastBroadcast?.title || "",
+    viewerCount: Number(stream?.viewers || stream?.viewerCount || stream?.viewer_count || 0) || 0
+  };
+}
+
 async function fetchStreamStatus(player) {
+  if (matchesStaticPlayer(player, forcedLivePlayers)) {
+    return { isLive: true, title: "Marcado en vivo", viewerCount: 0 };
+  }
+
   if (player.streamPlatform === "kick") return fetchKickStatus(player);
   if (player.streamPlatform === "tiktok") return { isLive: false, title: "", viewerCount: 0 };
   return fetchTwitchStatus(player);
