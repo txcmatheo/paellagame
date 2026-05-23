@@ -77,6 +77,9 @@ let isAdminAuthenticated = localStorage.getItem(adminTokenKey) === "1";
 const staticDeadPlayers = Array.isArray(window.PAELLA_STATIC_DEAD_PLAYERS)
   ? window.PAELLA_STATIC_DEAD_PLAYERS
   : ["thedalex", "vaalerinavzz", "vani_stunt18"];
+const forcedLivePlayers = Array.isArray(window.PAELLA_FORCE_LIVE_PLAYERS)
+  ? window.PAELLA_FORCE_LIVE_PLAYERS
+  : [];
 const players = creators.map((creator) => ({
   ...creator,
   streamPlatform: creator.streamPlatform || "twitch",
@@ -638,9 +641,9 @@ async function fetchTwitchIvrStatus(player) {
 }
 
 async function fetchStreamStatus(player) {
-  if (matchesStaticPlayer(player, forcedLivePlayers)) {
-    return { isLive: true, title: "Marcado en vivo", viewerCount: 0 };
-  }
+   if (matchesStaticPlayer(player, window.PAELLA_FORCE_LIVE_PLAYERS)) {
+     return { isLive: true, title: "Marcado en vivo", viewerCount: 0 };
+   }
 
   if (player.streamPlatform === "kick") return fetchKickStatus(player);
   if (player.streamPlatform === "tiktok") return { isLive: false, title: "", viewerCount: 0 };
