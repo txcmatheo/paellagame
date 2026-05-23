@@ -76,10 +76,7 @@ const isAdminPage = pathName.endsWith("/admin")
 let isAdminAuthenticated = localStorage.getItem(adminTokenKey) === "1";
 const staticDeadPlayers = Array.isArray(window.PAELLA_STATIC_DEAD_PLAYERS)
   ? window.PAELLA_STATIC_DEAD_PLAYERS
-  : [];
-const forcedLivePlayers = Array.isArray(window.PAELLA_FORCE_LIVE_PLAYERS)
-  ? window.PAELLA_FORCE_LIVE_PLAYERS
-  : [];
+  : ["thedalex", "vaalerinavzz", "vani_stunt18"];
 const players = creators.map((creator) => ({
   ...creator,
   streamPlatform: creator.streamPlatform || "twitch",
