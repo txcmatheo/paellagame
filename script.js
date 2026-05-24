@@ -699,7 +699,11 @@ function render() {
     const avatar = node.querySelector(".avatar");
     const streamState = streamStates.get(player.id) || { status: "checking", label: "Revisando" };
 
-    node.classList.toggle("is-dead", player.status === "dead");
+     node.classList.toggle("is-dead", player.status === "dead");
+     // Añadir clase especial para el ganador
+     if (player.name === "litdeivi") {
+       node.classList.add("winner");
+     }
     node.querySelector(".squid-number").textContent = `# ${player.id}`;
     node.querySelector(".squid-dorsal").textContent = String(player.id).padStart(3, "0");
     node.querySelector("h2").textContent = player.name;

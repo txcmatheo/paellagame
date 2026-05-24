@@ -754,11 +754,97 @@ h1 {
 }
 
 .player-card.is-dead .squid-dorsal {
-  border-color: rgba(255, 35, 79, 0.45);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 0 12px rgba(255, 35, 79, 0.5);
-}
+   border-color: rgba(255, 35, 79, 0.45);
+   box-shadow:
+     inset 0 1px 0 rgba(255, 255, 255, 0.5),
+     0 0 12px rgba(255, 35, 79, 0.5);
+ }
+
+/estilo especial para el ganador/
+.player-card.winner {
+   border-color: var(--acid-2) !important;
+   box-shadow: 
+     0 0 30px rgba(62, 232, 216, 0.6),
+     inset 0 0 20px rgba(62, 232, 216, 0.3) !important;
+   background: 
+     radial-gradient(circle at center, rgba(30, 20, 40, 0.8) 0%, rgba(10, 5, 15, 0.9) 70%),
+     linear-gradient(45deg, transparent 30%, rgba(62, 232, 216, 0.15) 30% 70%, transparent 70%) !important;
+   position: relative;
+   overflow: hidden;
+ }
+
+.player-card.winner::before {
+   content: "";
+   position: absolute;
+   inset: 0;
+   background: 
+     repeating-radial-gradient(circle at center, transparent 0%, rgba(62, 232, 216, 0.1) 10%),
+     repeating-linear-gradient(45deg, transparent 0%, rgba(62, 232, 216, 0.05) 5%);
+   animation: winnerPulse 3s ease-in-out infinite;
+   pointer-events: none;
+   opacity: 0.8;
+ }
+
+.player-card.winner::after {
+   content: "GANADOR";
+   position: absolute;
+   left: 50%;
+   top: 50%;
+   transform: translate(-50%, -50%);
+   z-index: 5;
+   background: rgba(62, 232, 216, 0.2);
+   color: var(--acid-2);
+   font-family: "Black Ops One", sans-serif;
+   font-size: 1.2rem;
+   font-weight: 900;
+   letter-spacing: 0.1em;
+   padding: 8px 16px;
+   border-radius: 12px;
+   border: 2px solid var(--acid-2);
+   box-shadow: 
+     0 0 15px rgba(62, 232, 216, 0.5),
+     inset 0 0 5px rgba(255, 255, 255, 0.2);
+   text-shadow: 0 0 8px rgba(62, 232, 216, 0.7);
+   animation: winnerTextPulse 2s ease-in-out infinite;
+   pointer-events: none;
+ }
+
+@keyframes winnerPulse {
+   0%, 100% {
+     opacity: 0.6;
+     transform: scale(1);
+   }
+   50% {
+     opacity: 0.9;
+     transform: scale(1.02);
+   }
+ }
+
+@keyframes winnerTextPulse {
+   0%, 100% {
+     text-shadow: 0 0 8px rgba(62, 232, 216, 0.7);
+     letter-spacing: 0.1em;
+   }
+   50% {
+     text-shadow: 0 0 15px rgba(62, 232, 216, 0.9);
+     letter-spacing: 0.15em;
+   }
+ }
+
+/Estilo para el avatar del ganador/
+.player-card.winner .avatar {
+   filter: drop-shadow(0 0 10px rgba(62, 232, 216, 0.6)) !important;
+   animation: winnerGlow 2s ease-in-out infinite alternate;
+ }
+
+@keyframes winnerGlow {
+   from {
+     filter: drop-shadow(0 0 5px rgba(62, 232, 216, 0.4)) brightness(1.1);
+   }
+   to {
+     filter: drop-shadow(0 0 15px rgba(62, 232, 216, 0.8)) brightness(1.3);
+   }
+ }
 
 .avatar.is-pixel {
   display: grid;
